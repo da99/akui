@@ -2,13 +2,10 @@
 Intro:
 =====
 
-This is not useful to you. Instead, use the following for data binding and
-model watching:
+This is not useful to you. Instead, use the following for testing
+stuff in the browser:
 
-  * [Ember.js](http://emberjs.com)
-  * [Rivets.js](http://rivetsjs.com)
-  * [Knockout.js](http://knockoutjs.com)
-  * [Thorax.js](http://thoraxjs.org)
+  * [Bromine.js](http://cheggeng.github.io/Bromine/)
   * ... and a million other alternatives.
 
 Dependencies
@@ -17,26 +14,22 @@ Dependencies
   * jQuery >= 1.9.1+
   * Underscore >= 1.4.3
   * Backbone >= 1.0.0
+  * Proclaim > 0.0.0
 
 Install:
 ========
 
 Latest version:
 
-    wget -O "Hyper_JS.js" https://raw.github.com/da99/Hyper_JS/master/Hyper_JS.js
+    git clone https://github.com/da99/mini_dom_test.git
+    cp mini_dom_test/Tests.html  MY_TESTS.html
 
-In your HTML:
-
-    <script src="../path/to/jQuery"></script>
-    <script src="./Hyper_JS.js" type="text/javascript"></script>
-
+Edit `MY_TESTS.html` to add in your script with your tests.
 
 Running Tests:
 =============
 
-     git clone git://github.com/da99/Hyper_JS.git
-     cd Hyper_JS
-     # open file in your browser: Tests.html
+     # open file in your browser: MY_TESTS.html
 
 
 
