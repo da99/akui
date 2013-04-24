@@ -45,7 +45,7 @@ assert.deepEqual = function (a, b, name) {
     proclaim.deepEqual(a, b);
     passed(name, j_a, j_b);
   } catch (e) {
-    error(name, j_a + ' !== ' + j_b);
+    failed(name, j_a + ' !== ' + j_b);
   }
 };
 
