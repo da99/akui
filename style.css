@@ -1,0 +1,6 @@
+body { background: #F0F0F0; padding-bottom: 50px; }
+#results div { padding: 10px ; margin-right: 5px; margin-bottom: 5px; }
+#results span { font-size: 90%; font-family: monospace; font-weight: bold; }
+div.passed { background: #CFDB00; float: left; }
+div.failed { background: #DB0013; float: left; }
+
