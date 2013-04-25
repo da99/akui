@@ -3,6 +3,11 @@ var results = {pass: 0, fail: 0, error: 0};
 var test_name = null;
 
 function test (name, func) {
+  var hash = (window.location.hash !== '') ? window.location.hash.replace('#', '') : null;
+
+  if (hash && name.indexOf(hash) < 0)
+    return;
+
   test_name = name;
   try {
     func();
