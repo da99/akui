@@ -32,10 +32,14 @@ test("it fails", function () { assert.deepEqual([1], [2]); });
 
 
     <script type="text/javascript">
-      if (results.fail || results.error)
-        console.log(results);
-      else if (results.pass > 0)
+      if (test_report.fail.length || test_report.err.length)
+        console.log('Pass: ' + test_report.pass.length, ", Fails: " + test_report.fail.length, ", Errs: " + test_report.err.length);
+      else if (test_report.pass.length > 0)
         console.log("ALL PASS.");
+
+      _.each(test_report.all, function (args) {
+        print_report.apply(null, args);
+      });
     </script>
 
   </body>
