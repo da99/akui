@@ -6,6 +6,8 @@ This is not useful to you. Instead, use the following for testing
 stuff in the browser:
 
   * [Bromine.js](http://cheggeng.github.io/Bromine/)
+  * Karma (aka Testacular)
+  * Buster.js
   * ... and a million other alternatives.
 
 Dependencies

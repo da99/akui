@@ -1,0 +1,130 @@
+#!/usr/bin/env node
+// -*- js   -*-
+
+// !/usr/bin/env bash
+// -*- bash -*-
+
+// set -u -e -o pipefail
+
+
+
+var _        = require('underscore');
+var chokidar = require('chokidar');
+var exec     = require("child_process").exec;
+var spawn    = require("child_process").spawn;
+var fs       = require("fs");
+var throw_err= function (err) {
+  throw err;
+};
+
+var shell    = function (cmd, func) {
+  return exec(cmd, function (err, o, e) {
+    if ( o ) process.stdout.write(o);
+    if ( e ) process.stdout.write(e);
+    if (err) throw err;
+    if (func)
+      func(o, e);
+  });
+};
+
+// ****************************************************************
+// ****************** Start watching... ***************************
+// ****************************************************************
+
+var watchers = [];
+var watched_dirs  = [];
+var server_started = false
+
+function watch(dirs, func) {
+  watched_dirs.push(dirs);
+  var w = chokidar.watch(dirs,  {ignored: /^\./, persistent: true, interval: 190});
+  watchers.push(w);
+  return w;
+}
+
+watch("bin/watch")
+.on('change', function (f) {
+  console.log("\nFile bin/watch has changed. Exiting.");
+  shutdown_all();
+})
+.on('error', throw_err);
+;
+
+watch( "./")
+.on('add', function (f) {
+  console.log("\nadded: " + f);
+  restart_server();
+})
+.on('change', function (filename) {
+  console.log("\nchanged: " + filename);
+  restart_server();
+})
+.on('unlink', function (filename) {
+  console.log("\ndeleted: " + filename);
+  restart_server();
+})
+.on('error', throw_err);
+;
+
+
+console.log("Watching: ", _.flatten(watched_dirs).join(', '), "\n");
+
+function shutdown_server(func) {
+  exec('bin/stop', function (err, so, se) {
+    if (so) console.log(so);
+    if (se) console.log(se);
+    if (err && !err.message.indexOf("no process found")) {
+      console.log("Exiting because: " + err);
+      process.exit(1);
+    }
+    func();
+  });
+}
+
+function restart_server(func) {
+
+  var server = spawn("bin/restart");
+  server.stdout.on('data', function (data) {
+    server_started = true;
+    process.stdout.write("" + data);
+  });
+
+  server.stderr.on('data', function (data) {
+    process.stdout.write("" + data);
+  });
+
+  server.on('close', function (code) {
+    console.log('server closed: ' + code, "\n");
+  });
+
+  if (func)
+    func();
+}
+
+function shutdown_all() {
+  shutdown_server(function () {
+    close();
+  });
+}
+
+function close() {
+  var w = watchers.pop();
+  if (w) {
+    w.close();
+    close();
+  } else {
+    process.exit(0);
+  }
+}
+
+restart_server();
+process.on('SIGINT',  shutdown_all);
+process.on('SIGTERM', shutdown_all);
+
+
+
+
+
+
+
+
