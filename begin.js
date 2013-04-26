@@ -1,15 +1,17 @@
 
-window.onerror = function (msg, file, line) {
-  if (window.error) {
-    error(msg, file + ':' + line);
-  }
-  throw msg;
+var window_errs = [];
+var results     = {pass: 0, fail: 0, error: 0};
+var test_name   = null;
+
+window.onerror = function (msg) {
+  window_errs.push(msg);
 };
 
-var results = {pass: 0, fail: 0, error: 0};
-var test_name = null;
-
 function test (name, func) {
+  while (window_errs.length) {
+    error("window", window_errs.pop());
+  }
+
   var hash = (window.location.hash !== '') ? window.location.hash.replace('#', '') : null;
 
   if (hash && name.indexOf(hash) < 0)
