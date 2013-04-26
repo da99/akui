@@ -36,6 +36,17 @@ function test(name, func) {
   }
 }
 
+function print_report_all() {
+  if (test_report.fail.length || test_report.err.length)
+    console.log('Pass: ' + test_report.pass.length, ", Fails: " + test_report.fail.length, ", Errs: " + test_report.err.length);
+  else if (test_report.pass.length > 0)
+    console.log("ALL PASS.");
+
+  _.each(test_report.all, function (args) {
+    print_report.apply(null, args);
+  });
+}
+
 function print_report(type, name, exp, act) {
 
   function span(txt) {
