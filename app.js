@@ -1,6 +1,7 @@
 var _         = require('underscore')
 , Redis       = require('redis')
 , fs          = require('fs')
+, path        = require('path')
 , express     = require('express')
 ;
 
@@ -12,7 +13,8 @@ client.on('error', function (err) {
 });
 var id_prefix = 'test_' + (new Date).getTime() + '_';
 var test_count = 0;
-var LIST_KEY = 'dom_results';
+var LIST_KEY = 'akui_results';
+var first_run = true;
 
 process.on('exit', function () {
   client.quit(function () {
@@ -20,54 +22,108 @@ process.on('exit', function () {
   });
 });
 
-function write_result(result, done) {
-  var id = id_prefix + (++test_count);
-  var vals = [id].concat( _.flatten(_.pairs(result)) );
-  client.hset(vals, function (err, replys) {
+function clear_results(done) {
+  read_results(done);
+};
+
+function read_results(done) {
+  var results = [];
+  var push = function (id, result) {
+    if (id) {
+      results.push([id, result]);
+      pop(push);
+    } else {
+      done(results);
+    }
+  };
+  pop(push);
+}
+
+function pop(done) {
+  client.lpop(LIST_KEY, function (err, id) {
     if (err) throw err;
-    client.rpush( LIST_KEY, id, function (err, replys) {
-      if (err) throw err;
+    if (!id)
       done();
+
+    client.get(id, function (err, result) {
+      if (err) throw err;
+      done(id, result);
     });
   });
 }
 
-function pop(done) {
-  client.lpop(LIST_KEY, function (err, reply) {
-    if (err) throw err;
-    done(reply);
-  });
-}
-function read_results(done) {
-  var results = [];
-  pop(function (reply) {
-    if (reply)
-      results.push(reply);
-    else
-      done(results);
+function write_result(result, done) {
+  var pairs = _.pairs(result);
+  var waits = pairs.slice();
+  _.each(pairs, function (p, i) {
+    var id = p[0];
+    var r  = p[1];
+    if (r.toString().trim() === '') {
+        waits.shift();
+      return;
+    }
+    client.rpush(LIST_KEY, id, function (err, replys) {
+      if (err) throw err;
+      client.set(id, JSON.stringify(r), function (err, replys) {
+        if (err) throw err;
+        waits.shift();
+        if (!waits.length)
+          done();
+      });
+    });
   });
 }
 
+function read_file_list(dir) {
+  return _.select(fs.readdirSync(dir), function (file, i) {
+    return file.match(/^[0-9]+\-/);
+  }).sort();
+}
 
-module.exports = function () {
+module.exports = function (test_dir) {
+
+  var files = read_file_list(test_dir);
 
   return function (req, resp, next) {
-    if (req.url === '/akui_tests/report') {
-      write_result(req.data, function () {
+    if (req.url === '/akui_tests/report' && req.method === 'POST') {
+      write_result(req.body, function () {
         resp.json({success: true});
       });
       return;
     }
 
-    if (req.url === '/akui_tests/print') {
+    if (req.url === '/akui_tests/report' && req.method === 'GET') {
       read_results(function (results) {
         resp.json(results)
       });
       return;
     }
 
-    if (req.url === '/akui_tests/next') {
-      resp.json({success:true})
+    if (req.url === '/akui_tests/next' && req.method === 'GET') {
+      var next_file = files.shift();
+      var contents = (next_file) ? fs.readFileSync(path.join(test_dir, next_file)).toString() : null;
+
+      if (contents) {
+        client.set('Akui.STATUS', 'start', function (err, reply) {
+          if (err) throw err;
+        });
+      } else {
+        client.set('Akui.STATUS', 'fin', function (err, reply) {
+          if (err) throw err;
+        });
+      }
+
+      var fin = function () {
+        resp.json({success:true, code: contents, test_id: next_file});
+      };
+
+      if (first_run) {
+        first_run = false;
+        read_results(fin);
+        return;
+      }
+
+      fin();
       return;
     }
 
@@ -80,6 +136,8 @@ module.exports = function () {
 
 }; // === init
 
+module.exports.clear_results = clear_results;
+module.exports.read_results  = read_results;
 
 var quit = module.exports.quit = function () {
   client.quit(function () { process.exit() });
@@ -91,7 +149,8 @@ process.on('SIGTERM', quit);
 if (process.argv.indexOf(require.main.filename) > -1) {
   var app = express();
   app.use(express.logger('dev'));
-  app.use(module.exports());
+  app.use(express.bodyParser());
+  app.use(module.exports('tests'));
   app.use('/', express.static(__dirname + '/public'));
   app.use(function (err, req, resp, next) {
     console.log(err);

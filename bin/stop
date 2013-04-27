@@ -4,6 +4,6 @@
 set -u -e -o pipefail
 
 
-pkill --signal INT -f "node test.js"
+pkill --signal INT -f "node app.js"
 
 

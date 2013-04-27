@@ -6,17 +6,23 @@
 
 var Akui = {};
 
-Akui.report = {
-  pass  : [],
-  fail  : [],
-  waits : [],
-  all   : []
+Akui.reset = function () {
+  Akui.report = {
+    pass  : [],
+    fail  : [],
+    waits : [],
+    all   : []
+  };
+
+  Akui.current = {
+    test_name  : null,
+    test_index : -1
+  };
+
+  return Akui;
 };
 
-Akui.current = {
-  test_name : null,
-  test_index : -1
-};
+Akui.reset();
 
 // ================================================================
 // ================== Reporting Results ===========================
@@ -72,7 +78,6 @@ Akui.print.all = function() {
 // ===     You can write over this function in your tests.      ===
 // ================================================================
 Akui.print.report = function(test) {
-  console.log(JSON.stringify(test))
   var type = (test.result && test.result[0] ) || 'fail';
   var name = test.name;
   var exp  = test.result && test.result[2];
@@ -125,7 +130,6 @@ Akui.test = function (name, func) {
       Akui.fail(index, a, b);
   };
 
-
   try {
     Akui.report.all[Akui.current.test_index] = {name: name, results: null, fin: null};
     func(assert);
@@ -135,18 +139,23 @@ Akui.test = function (name, func) {
 
 };
 
-Akui.run_next = function () {
+Akui.run = function () {
   promise.get('/akui_tests/next', {}, {"Accept": "application/json"}).then(function (error, result) {
     var r = (typeof result === 'string') ? JSON.parse(result) : result;
     if (error)
       throw error;
+
     if (r.code) {
       eval(r.code);
+      Akui.current.test_id = r.test_id;
       Akui.finish();
       return;
     }
-    if (!Akui.report.all.length)
+
+    if (!Akui.report.all.length) {
+      console.log(Akui.report.all);
       throw new Error("Akui: no tests found.");
+    }
     if (Akui.report.all.length != (Akui.report.pass.length + Akui.report.fail.length))
       throw new Error("Akui: timeout. Tests taking too long to finish.");
     console.log("Akui: testing has finished.");
@@ -156,11 +165,21 @@ Akui.run_next = function () {
 Akui.finish = function () {
   if (Akui.report.waits.length) {
     console.log('Akui: waiting to finish...');
+    Akui.report.waits.sort();
     return setTimeout(Akui.finish, Akui.report.waits.shift());
   }
 
-  return Akui.run_next();
+  var data = {};
+  data[Akui.current.test_id] = JSON.stringify(Akui.report);
 
+  promise.post('/akui_tests/report', data, {Accepts: "application/json"})
+  .then(function (error, result) {
+    if (error) throw error;
+    console.log('Akui report send: ' + JSON.stringify(result));
+    Akui.reset();
+  });
+
+  return;
 };
 
 // ================================================================
@@ -168,7 +187,7 @@ Akui.finish = function () {
 // ================================================================
 
 
-Akui.run_next();
+Akui.run();
 
 
 
