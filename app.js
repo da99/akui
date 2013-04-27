@@ -66,6 +66,11 @@ module.exports = function () {
       return;
     }
 
+    if (req.url === '/akui_tests/next') {
+      resp.json({success:true})
+      return;
+    }
+
     if (req.url.indexOf('/akui_tests') === 0 || req.url === '/favicon.ico') {
       req.url = req.url.replace('/akui_tests', '');
       return static(req, resp, next);

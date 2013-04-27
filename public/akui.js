@@ -9,6 +9,7 @@ var Akui = {};
 Akui.report = {
   pass  : [],
   fail  : [],
+  waits : [],
   all   : []
 };
 
@@ -22,23 +23,26 @@ Akui.current = {
 // ================================================================
 
 
-Akui.pass = function (name, msg)  { Akui.result('pass',  name, msg); return Akui; };
-Akui.fail = function (name, msg)  { Akui.result('fail',  name, msg); return Akui; };
+Akui.pass = function (name, exp, act) { Akui.result('pass', name, exp, act); return Akui; };
+Akui.fail = function (name, exp, act) {
+  if (arguments.length === 2)
+    Akui.result('fail', name, exp);
+  else
+    Akui.result('fail', name, exp, act);
+  return Akui;
+};
 
-Akui.result = function (type, name, exp, act) {
+Akui.result = function (type, i_name, exp, act) {
   var args = Array.prototype.slice.apply(arguments, []);
 
-  if (Akui.report.all[name]) {
-    var test = Akui.report.all[name];
-    name         = args[1] = test.name;
-    test.fin     = true;
-    test.results = args;
-  }
+  var test     = Akui.report.all[i_name];
+  var name     = args[1] = test.name;
+  test.is_fin  = true;
+  test.results = args;
 
-  Akui.report.all.push(args);
   Akui.report[(type === 'pass') ? type : 'fail'].push(args);
 
-  var is_err = exp.message && exp.constructor && exp.constructor === Error;
+  var is_err = (arguments.length === 3) && exp.message && exp.constructor && exp.constructor === Error;
   if (is_err)
     throw exp;
 
@@ -107,10 +111,12 @@ Akui.test = function (name, func) {
   if (hash && name.indexOf(hash) < 0)
     return;
 
+  Akui.report.waits.push(250);
   Akui.current.test_index += 1;
   var index = Akui.current.test_index;
 
   var assert = function (exp, act) {
+    Akui.report.waits.shift();
     var a = JSON.stringify(exp);
     var b = JSON.stringify(act);
     if (_.isEqual(exp, act))
@@ -121,52 +127,40 @@ Akui.test = function (name, func) {
 
 
   try {
-    Akui.report.waits[Akui.current.test_index] = {name: name, results: null, fin: null};
+    Akui.report.all[Akui.current.test_index] = {name: name, results: null, fin: null};
     func(assert);
   } catch (e) {
-    Akui.fail(index, e, null);
+    Akui.fail(index, e);
   }
 
 };
 
 Akui.run_next = function () {
-  if (!window.akui_loads)
-    window.akui_loads = 0;
-  window.akui_loads += 1;
-
-  if (window.akui_loads > 10) {
-    console.log('Throwing...');
-    throw new Error("promise lib not found.");
-    return;
-  }
-
-  if (!window.promise) {
-    console.log('Waiting for promise lib to load...');
-    setTimeout(Akui.run_next, 200);
-    return;
-  }
-
-  window.akui_loads = 1;
-
-  promise.get('/akui_tests/next').then(function (error, result) {
-    console.log(error);
-    console.log(result);
-    Akui.finish();
+  promise.get('/akui_tests/next', {}, {"Accept": "application/json"}).then(function (error, result) {
+    var r = (typeof result === 'string') ? JSON.parse(result) : result;
+    if (error)
+      throw error;
+    if (r.code) {
+      eval(r.code);
+      Akui.finish();
+      return;
+    }
+    if (!Akui.report.all.length)
+      throw new Error("Akui: no tests found.");
+    if (Akui.report.all.length != (Akui.report.pass.length + Akui.report.fail.length))
+      throw new Error("Akui: timeout. Tests taking too long to finish.");
+    console.log("Akui: testing has finished.");
   });
 };
 
 Akui.finish = function () {
-  var total_fin = Akui.report.pass + Akui.report.fail;
-  if (Akui.report.all.length && total_fin === Akui.report.all.length)
-    return Akui.run_next();
+  if (Akui.report.waits.length) {
+    console.log('Akui: waiting to finish...');
+    return setTimeout(Akui.finish, Akui.report.waits.shift());
+  }
 
-  if (!window.fins)
-    window.fins = 0;
-  window.fins += 1;
-  if (window.fins > 15)
-    throw new Error("Timeout: Akui tests.");
-  console.log('waiting...');
-  setTimeout(Akui.finish, 250);
+  return Akui.run_next();
+
 };
 
 // ================================================================
