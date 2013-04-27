@@ -24,9 +24,9 @@ Akui.current = {
 // ================================================================
 
 
-Akui.pass(name, msg)  { Akui.result('pass',  name, msg); };
-Akui.fail(name, msg)  { Akui.result('fail',  name, msg); };
-Akui.error(name, msg) { Akui.result('error', name, msg); };
+Akui.pass = function (name, msg)  { Akui.result('pass',  name, msg); return Akui; };
+Akui.fail = function (name, msg)  { Akui.result('fail',  name, msg); return Akui; };
+Akui.error= function (name, msg)  { Akui.result('error', name, msg); return Akui; };
 
 Akui.result = function (type, name, exp, act) {
   var args = Array.prototype.slice.apply(arguments, []);
@@ -130,14 +130,43 @@ Akui.test = function (name, func) {
 };
 
 Akui.run_next = function () {
+  if (!window.akui_loads)
+    window.akui_loads = 0;
+  window.akui_loads += 1;
+
+  if (window.akui_loads > 50) {
+    throw new Error("microAjax lib not found.");
+    return;
+  }
+
+  if (!window.microAjax) {
+    setTimeout(Akui.run_next, 200);
+    return;
+  }
+
+  window.akui_loads = 1;
+
   microAjax('/akui_tests/next', function (str) {
+    console.log(this)
     alert(typeof str);
+    Akui.finish();
   });
+};
+
+Akui.finish = function () {
+  if (!window.fins)
+    window.fins = 0;
+  window.fins += 1;
+  if (window.fins > 15)
+    throw new Error("Timeout: Akui tests.");
+  console.log('waiting...');
+  setTimeout(Akui.finish, 250);
 };
 
 // ================================================================
 // ================== Showtime! ===================================
 // ================================================================
+
 
 Akui.run_next();
 

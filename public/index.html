@@ -11,26 +11,23 @@
 
     <div id="results" onclick="window.location.reload();"></div>
 
-    <script type="text/javascript" src="./akui_tests/begin.js"></script>
+    <script type="text/javascript" src="./akui_tests/akui.js"></script>
 
     <script src="./akui_tests/jquery.js"></script>
     <script src="./akui_tests/underscore.js"></script>
-    <script src="./akui_tests/backbone.js"></script>
-    <script src="./akui_tests/proclaim.js"></script>
+    <script src="./akui_tests/microajax.minified.js"></script>
 
 
 
     <!-- Insert your tests here. -->
 
     <script type="text/javascript">
-test("it runs", function () { assert(true, true); });
-test("it deep equals", function () { assert.deepEqual([1], [1]); });
-test("it fails", function () { assert.deepEqual([1], [2]); });
+Akui.test("it runs", function () { assert(true, true); });
+Akui.test("it deep equals", function () { assert.deepEqual([1], [1]); });
+Akui.test("it fails", function () { assert.deepEqual([1], [2]); });
     </script>
 
     <!-- ...................... -->
-
-    <script type="text/javascript"> print_report_all(); </script>
 
   </body>
 </html>

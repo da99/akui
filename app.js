@@ -95,7 +95,11 @@ if (process.argv.indexOf(require.main.filename) > -1) {
   app.use(function (req, resp, next) {
     resp.send(404, "Not found. Try: <a href='/akui_tests/Tests.html'>Tests.html</a> ");
   });
-  app.listen(5000);
+
+  var port = process.env.PORT || 5000;
+  app.listen(port, function () {
+    console['log']('Listening to: ' + port);
+  });
 }
 
 

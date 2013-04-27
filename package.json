@@ -22,7 +22,7 @@
     "hiredis" : "x.x.x"
   },
   "devDependencies" : {
-    "express" : "x.x.x", 
+    "express" : "x.x.x",
     "chokidar" : "x.x.x"
   },
   "author": "da99",
