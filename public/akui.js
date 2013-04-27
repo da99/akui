@@ -9,8 +9,6 @@ var Akui = {};
 Akui.report = {
   pass  : [],
   fail  : [],
-  error : [],
-  waits : [],
   all   : []
 };
 
@@ -26,20 +24,19 @@ Akui.current = {
 
 Akui.pass = function (name, msg)  { Akui.result('pass',  name, msg); return Akui; };
 Akui.fail = function (name, msg)  { Akui.result('fail',  name, msg); return Akui; };
-Akui.error= function (name, msg)  { Akui.result('error', name, msg); return Akui; };
 
 Akui.result = function (type, name, exp, act) {
   var args = Array.prototype.slice.apply(arguments, []);
 
-  if (Akui.report.waits[name]) {
-    var test = Akui.report.waits[name];
+  if (Akui.report.all[name]) {
+    var test = Akui.report.all[name];
     name         = args[1] = test.name;
     test.fin     = true;
     test.results = args;
   }
 
   Akui.report.all.push(args);
-  Akui.report[(type === 'pass' || type === 'fail') ? type : 'error'].push(args);
+  Akui.report[(type === 'pass') ? type : 'fail'].push(args);
 
   var is_err = exp.message && exp.constructor && exp.constructor === Error;
   if (is_err)
@@ -47,8 +44,6 @@ Akui.result = function (type, name, exp, act) {
 
   return Akui;
 };
-
-window.onerror = Akui.error;
 
 
 // ================================================================
@@ -59,20 +54,25 @@ window.onerror = Akui.error;
 Akui.print = {};
 
 Akui.print.all = function() {
-  if (Akui.report.fail.length || Akui.report.error.length)
-    console.log('Pass: ' + Akui.report.pass.length, ", Fails: " + Akui.report.fail.length, ", Errs: " + Akui.report.error.length);
+  if (Akui.report.fail.length)
+    console.log('Pass: ' + Akui.report.pass.length, ", Fails: " + Akui.report.fail.length);
   else if (Akui.report.pass.length > 0)
     console.log("ALL PASS.");
 
   _.each(Akui.report.all, function (test) {
-    Akui.print.report.apply(null, test.result);
+    Akui.print.report.apply(null, [test]);
   });
 }
 
 // ================================================================
 // ===     You can write over this function in your tests.      ===
 // ================================================================
-Akui.print.report = function(type, name, exp, act) {
+Akui.print.report = function(test) {
+  console.log(JSON.stringify(test))
+  var type = (test.result && test.result[0] ) || 'fail';
+  var name = test.name;
+  var exp  = test.result && test.result[2];
+  var act  = test.result && test.result[3];
 
   function span(txt) {
     return '<span>' + (txt + '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
@@ -124,7 +124,7 @@ Akui.test = function (name, func) {
     Akui.report.waits[Akui.current.test_index] = {name: name, results: null, fin: null};
     func(assert);
   } catch (e) {
-    Akui.error(index, e);
+    Akui.fail(index, e, null);
   }
 
 };
@@ -134,26 +134,32 @@ Akui.run_next = function () {
     window.akui_loads = 0;
   window.akui_loads += 1;
 
-  if (window.akui_loads > 50) {
-    throw new Error("microAjax lib not found.");
+  if (window.akui_loads > 10) {
+    console.log('Throwing...');
+    throw new Error("promise lib not found.");
     return;
   }
 
-  if (!window.microAjax) {
+  if (!window.promise) {
+    console.log('Waiting for promise lib to load...');
     setTimeout(Akui.run_next, 200);
     return;
   }
 
   window.akui_loads = 1;
 
-  microAjax('/akui_tests/next', function (str) {
-    console.log(this)
-    alert(typeof str);
+  promise.get('/akui_tests/next').then(function (error, result) {
+    console.log(error);
+    console.log(result);
     Akui.finish();
   });
 };
 
 Akui.finish = function () {
+  var total_fin = Akui.report.pass + Akui.report.fail;
+  if (Akui.report.all.length && total_fin === Akui.report.all.length)
+    return Akui.run_next();
+
   if (!window.fins)
     window.fins = 0;
   window.fins += 1;
