@@ -1,5 +1,5 @@
 {
-  "name": "ui_tests",
+  "name": "akui",
   "version": "0.0.0",
   "description": "Personal way of testing a web app ui.",
   "main": "app.js",

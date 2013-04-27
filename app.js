@@ -52,22 +52,22 @@ function read_results(done) {
 module.exports = function () {
 
   return function (req, resp, next) {
-    if (req.url === '/ui_tests/report') {
+    if (req.url === '/akui_tests/report') {
       write_result(req.data, function () {
         resp.json({success: true});
       });
       return;
     }
 
-    if (req.url === '/ui_tests/print') {
+    if (req.url === '/akui_tests/print') {
       read_results(function (results) {
         resp.json(results)
       });
       return;
     }
 
-    if (req.url.indexOf('/ui_tests') === 0 || req.url === '/favicon.ico') {
-      req.url = req.url.replace('/ui_tests', '');
+    if (req.url.indexOf('/akui_tests') === 0 || req.url === '/favicon.ico') {
+      req.url = req.url.replace('/akui_tests', '');
       return static(req, resp, next);
     }
     next();
@@ -93,7 +93,7 @@ if (process.argv.indexOf(require.main.filename) > -1) {
     resp.send(500, "Error.");
   });
   app.use(function (req, resp, next) {
-    resp.send(404, "Not found. Try: <a href='/ui_tests/Tests.html'>Tests.html</a> ");
+    resp.send(404, "Not found. Try: <a href='/akui_tests/Tests.html'>Tests.html</a> ");
   });
   app.listen(5000);
 }

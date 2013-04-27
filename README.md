@@ -23,8 +23,8 @@ Install:
 
 Latest version:
 
-    git clone https://github.com/da99/ui_tests.git
-    cp ui_tests/index.html  MY_TESTS.html
+    git clone https://github.com/da99/akui.git
+    cp akui/index.html  MY_TESTS.html
 
 Edit `MY_TESTS.html` to add in your script with your tests.
 
