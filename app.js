@@ -1,7 +1,11 @@
 var _         = require('underscore')
 , Redis       = require('redis')
+, fs          = require('fs')
+, express     = require('express')
 ;
 
+var static = express.static(__dirname + '/public', {maxAge: 1000});
+var cache = {};
 var client = Redis.createClient();
 client.on('error', function (err) {
   throw new Error("Redis client error: " + err);
@@ -45,18 +49,53 @@ function read_results(done) {
 }
 
 
-exports.route = function (app) {
+module.exports = function () {
 
-  app.post('/report_dom', function (req, resp) {
-    write_result(req.data, function () {
-      resp.json({success: true});
-    });
-  });
+  return function (req, resp, next) {
+    if (req.url === '/ui_tests/report') {
+      write_result(req.data, function () {
+        resp.json({success: true});
+      });
+      return;
+    }
 
-  app.get('/dom_report', function (req, resp) {
-    read_results(function (results) {
-      resp.json(results)
-    });
-  });
+    if (req.url === '/ui_tests/print') {
+      read_results(function (results) {
+        resp.json(results)
+      });
+      return;
+    }
+
+    if (req.url.indexOf('/ui_tests') === 0 || req.url === '/favicon.ico') {
+      req.url = req.url.replace('/ui_tests', '');
+      return static(req, resp, next);
+    }
+    next();
+  };
 
 }; // === init
+
+
+var quit = module.exports.quit = function () {
+  client.quit(function () { process.exit() });
+};
+
+process.on('SIGINT', quit);
+process.on('SIGTERM', quit);
+
+if (process.argv.indexOf(require.main.filename) > -1) {
+  var app = express();
+  app.use(express.logger('dev'));
+  app.use(module.exports());
+  app.use('/', express.static(__dirname + '/public'));
+  app.use(function (err, req, resp, next) {
+    console.log(err);
+    resp.send(500, "Error.");
+  });
+  app.use(function (req, resp, next) {
+    resp.send(404, "Not found. Try: <a href='/ui_tests/Tests.html'>Tests.html</a> ");
+  });
+  app.listen(5000);
+}
+
+

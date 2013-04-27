@@ -1,5 +1,5 @@
 {
-  "name": "mini_dom_test",
+  "name": "ui_tests",
   "version": "0.0.0",
   "description": "Personal way of testing a web app ui.",
   "main": "app.js",
