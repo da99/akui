@@ -15,7 +15,7 @@ function re_download {
 }
 
 
-re_download "jquery.js"      "http://code.jquery.com/jquery-1.9.1.min.js"
+# re_download "jquery.js"      "http://code.jquery.com/jquery-1.9.1.min.js"
 re_download "underscore.js"  "http://underscorejs.org/underscore-min.js"
-re_download "backbone.js"    "http://backbonejs.org/backbone-min.js"
-re_download "proclaim.js"    "https://raw.github.com/rowanmanning/proclaim/master/lib/proclaim.js"
+# re_download "backbone.js"    "http://backbonejs.org/backbone-min.js"
+# re_download "proclaim.js"    "https://raw.github.com/rowanmanning/proclaim/master/lib/proclaim.js"
