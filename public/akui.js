@@ -92,10 +92,11 @@ Akui.print.all = function() {
 // ===     You can write over this function in your tests.      ===
 // ================================================================
 Akui.print.report = function(test) {
-  var type = (test.result && test.result[0] ) || 'fail';
+  console.log(JSON.stringify(test))
+  var type = (test.results && test.results[0] ) || 'fail';
   var name = test.name;
-  var exp  = test.result && test.result[2];
-  var act  = test.result && test.result[3];
+  var exp  = test.results && test.results[2];
+  var act  = test.results && test.results[3];
 
   function span(txt) {
     return '<span>' + (txt + '').replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</span>';
