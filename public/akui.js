@@ -4,7 +4,7 @@
 // ================================================================
 
 
-var Akui = {events: { finish: [] } };
+var Akui = {events: { finish: [] }, total_for_page: 0 };
 
 Akui.reset = function () {
   Akui.report = {
@@ -92,7 +92,6 @@ Akui.print.all = function() {
 // ===     You can write over this function in your tests.      ===
 // ================================================================
 Akui.print.report = function(test) {
-  console.log(JSON.stringify(test))
   var type = (test.results && test.results[0] ) || 'fail';
   var name = test.name;
   var exp  = test.results && test.results[2];
@@ -130,7 +129,7 @@ Akui.test = function (name, func) {
 
   if (hash && name.indexOf(hash) < 0)
     return;
-
+  Akui.total_for_page += 1;
   Akui.report.waits.push(250);
   Akui.current.test_index += 1;
   var index = Akui.current.test_index;
@@ -167,13 +166,14 @@ Akui.run = function () {
       return;
     }
 
-    if (!Akui.report.all.length) {
+    if (!Akui.total_for_page) {
       console.log(Akui.report.all);
       throw new Error("Akui: no tests found.");
     }
 
     if (Akui.report.all.length != (Akui.report.pass.length + Akui.report.fail.length))
       throw new Error("Akui: timeout. Tests taking too long to finish.");
+
     console.log("Akui: testing has finished.");
   });
 };
@@ -190,7 +190,7 @@ Akui.finish = function () {
 
   return fermata.json("/akui_tests/report").post(data, function (err, result) {
     if (err) throw err;
-    console.log('Akui report send: ' + JSON.stringify(result));
+    console.log('Akui report sent: ' + JSON.stringify(result));
     Akui.trigger('finish');
   });
 };
