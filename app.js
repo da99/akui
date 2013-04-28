@@ -33,7 +33,11 @@ function read_results(done) {
       results.push([id, result]);
       pop(push);
     } else {
-      done(results);
+
+      client.get('Akui.STATUS', function (err, reply) {
+        if (err) throw err;
+        done(results, reply === 'fin');
+      });
     }
   };
   pop(push);
@@ -43,7 +47,7 @@ function pop(done) {
   client.lpop(LIST_KEY, function (err, id) {
     if (err) throw err;
     if (!id)
-      done();
+      return done();
 
     client.get(id, function (err, result) {
       if (err) throw err;
@@ -87,6 +91,7 @@ module.exports = function (test_dir) {
   return function (req, resp, next) {
     if (req.url === '/akui_tests/report' && req.method === 'POST') {
       write_result(req.body, function () {
+        console['log']("AKUI: results saved.");
         resp.json({success: true});
       });
       return;
@@ -139,14 +144,28 @@ module.exports = function (test_dir) {
 module.exports.clear_results = clear_results;
 module.exports.read_results  = read_results;
 
-var quit = module.exports.quit = function () {
-  client.quit(function () { process.exit() });
+var timeout    = 250;
+
+var stream_results = module.exports.stream_results = function (stream) {
+  read_results(function (results, is_fin) {
+    var any = results.length !== 0;
+
+    if (any)
+      stream(results, is_fin);
+
+    setTimeout( function () {  stream_results(stream); }, timeout );
+  });
 };
 
-process.on('SIGINT', quit);
-process.on('SIGTERM', quit);
+var quit = module.exports.quit = function (func) {
+  console.log("quitting redis...");
+  client.quit(func || function () { process.exit(); });
+};
 
-if (process.argv.indexOf(require.main.filename) > -1) {
+
+if (process.argv.indexOf(__dirname + '/app.js') > -1) {
+  process.on('SIGINT', quit);
+  process.on('SIGTERM', quit);
   var app = express();
   app.use(express.logger('dev'));
   app.use(express.bodyParser());

@@ -14,6 +14,7 @@ var exec     = require("child_process").exec;
 var spawn    = require("child_process").spawn;
 var fs       = require("fs");
 var path     = require("path");
+var akui     = require('../app');
 var throw_err= function (err) {
   throw err;
 };
@@ -27,6 +28,28 @@ var shell    = function (cmd, func) {
       func(o, e);
   });
 };
+
+var stop_stream = false;
+var fetched=false;
+function stream_results() {
+  console.log('streaming...');
+
+  if (stop_stream)
+    return;
+
+  akui.read_results(function (results, is_fin) {
+    if (results.length) {
+      fetched = true;
+      console.log('Fetched: ', results);
+    }
+
+    if (fetched && is_fin) {
+      console.log('Finished fetching results.');
+      return;
+    }
+    setTimeout(stream_results, 550);
+  });
+}
 
 // ****************************************************************
 // ****************** Start watching... ***************************
@@ -85,11 +108,13 @@ function shutdown_server(func) {
 }
 
 function restart_server(func) {
-
   var server = spawn("bin/restart");
-  server.stdout.on('data', function (data) {
+  server.stdout.on('data', function (raw_data) {
+    var data = raw_data.toString();
     server_started = true;
-    process.stdout.write("" + data);
+    process.stdout.write(data);
+    if (data.trim().match(/^AKUI: /i))
+      stream_results();
   });
 
   server.stderr.on('data', function (data) {
@@ -105,7 +130,9 @@ function restart_server(func) {
 }
 
 function shutdown_all() {
+  stop_stream = true;
   shutdown_server(function () {
+    console.log('closing watchers...');
     close();
   });
 }
@@ -116,13 +143,15 @@ function close() {
     w.close();
     close();
   } else {
-    process.exit(0);
+    akui.quit(function () {
+      process.exit();
+    });
   }
 }
 
-restart_server();
 process.on('SIGINT',  shutdown_all);
 process.on('SIGTERM', shutdown_all);
+restart_server();
 
 
 
