@@ -4,7 +4,7 @@
 // ================================================================
 
 
-var Akui = {};
+var Akui = {events: { finish: [] } };
 
 Akui.reset = function () {
   Akui.report = {
@@ -23,6 +23,20 @@ Akui.reset = function () {
 };
 
 Akui.reset();
+
+// ================================================================
+// ================== Events ======================================
+// ================================================================
+
+Akui.on = function (name, func) {
+  Akui.events[name].push(func);
+};
+
+Akui.trigger = function (name) {
+  _.each(Akui.events[name], function (f) {
+    f();
+  });
+};
 
 // ================================================================
 // ================== Reporting Results ===========================
@@ -140,8 +154,8 @@ Akui.test = function (name, func) {
 };
 
 Akui.run = function () {
-  promise.get('/akui_tests/next', {}, {"Accept": "application/json"}).then(function (error, result) {
-    var r = (typeof result === 'string') ? JSON.parse(result) : result;
+  promise.get('/akui_tests/next', {}, {"Accept": "text/plain"}).then(function (error, result) {
+    var r = JSON.parse(result);
     if (error)
       throw error;
 
@@ -156,6 +170,7 @@ Akui.run = function () {
       console.log(Akui.report.all);
       throw new Error("Akui: no tests found.");
     }
+
     if (Akui.report.all.length != (Akui.report.pass.length + Akui.report.fail.length))
       throw new Error("Akui: timeout. Tests taking too long to finish.");
     console.log("Akui: testing has finished.");
@@ -170,16 +185,13 @@ Akui.finish = function () {
   }
 
   var data = {};
-  data[Akui.current.test_id] = JSON.stringify(Akui.report);
+  data[Akui.current.test_id] = (Akui.report);
 
-  promise.post('/akui_tests/report', data, {Accepts: "application/json"})
-  .then(function (error, result) {
-    if (error) throw error;
+  return fermata.json("/akui_tests/report").post(data, function (err, result) {
+    if (err) throw err;
     console.log('Akui report send: ' + JSON.stringify(result));
-    Akui.reset();
+    Akui.trigger('finish');
   });
-
-  return;
 };
 
 // ================================================================
