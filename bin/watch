@@ -34,6 +34,7 @@ var shell    = function (cmd, func) {
 var stop_stream = false;
 var stream_started = false;
 function stream_results() {
+    console.log('streaming...');
   if (stream_started)
     return;
   stream_started = true;
@@ -136,13 +137,13 @@ function exec_this(cmd, func) {
 
 function restart_server(func) {
   akui.clear_results(function () {
+    stream_results();
+
     var server = spawn("bin/restart");
     server.stdout.on('data', function (raw_data) {
       var data = raw_data.toString();
       server_started = true;
       process.stdout.write(data);
-      if (data.trim().match(/^AKUI: /i))
-        stream_results();
     });
 
     server.stderr.on('data', function (data) {

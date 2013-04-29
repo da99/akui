@@ -40,7 +40,6 @@ function read_status(func) {
 
 function update_status(val, func) {
   client.set(STATUS_KEY, val, function (err, reply) {
-    console.log('new stat: ', val, reply);
     if (err) throw err;
     if (func)
       func(reply);
@@ -119,7 +118,6 @@ module.exports = function (test_dir) {
 
     if (req.url === '/akui_tests/report' && req.method === 'POST') {
       write_result(req.body, function () {
-        console['log']("AKUI: results saved.");
         if (!files.length)
           update_status('fin');
         resp.json({success: true});
