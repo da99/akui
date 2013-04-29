@@ -1,9 +1,6 @@
 #!/usr/bin/env node
+
 // -*- js   -*-
-
-// !/usr/bin/env bash
-// -*- bash -*-
-
 // set -u -e -o pipefail
 
 process.env.TEST_FILE = "0";
@@ -32,12 +29,7 @@ var shell    = function (cmd, func) {
 };
 
 var stop_stream = false;
-var stream_started = false;
 function stream_results() {
-  if (stream_started)
-    return;
-  stream_started = true;
-
   akui.stream_results(function (r, is_fin, stat) {
 
     if (stop_stream)
