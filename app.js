@@ -158,7 +158,6 @@ var stream_results = module.exports.stream_results = function (stream) {
 };
 
 var quit = module.exports.quit = function (func) {
-  console.log("quitting redis...");
   client.quit(func || function () { process.exit(); });
 };
 
