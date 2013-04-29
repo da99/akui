@@ -170,10 +170,7 @@ function close() {
     close();
   } else {
     akui.quit(function () {
-        setTimeout(function () {
-          console.log("forcing exit...");
-          process.exit();
-          }, 1000);
+      console.log('closing akui.');
     });
   }
 }
