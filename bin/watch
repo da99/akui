@@ -64,6 +64,9 @@ function stream_results() {
   });
 }
 
+stream_results();
+
+
 // ****************************************************************
 // ****************** Start watching... ***************************
 // ****************************************************************
@@ -133,27 +136,23 @@ function exec_this(cmd, func) {
 }
 
 function restart_server(func) {
-  akui.clear_results(function () {
-    stream_results();
-
-    var server = spawn("bin/restart");
-    server.stdout.on('data', function (raw_data) {
-      var data = raw_data.toString();
-      server_started = true;
-      process.stdout.write(data);
-    });
-
-    server.stderr.on('data', function (data) {
-      process.stdout.write("" + data);
-    });
-
-    server.on('close', function (code) {
-      console.log('server closed: ' + code, "\n");
-    });
-
-    if (func)
-      func();
+  var server = spawn("bin/restart");
+  server.stdout.on('data', function (raw_data) {
+    var data = raw_data.toString();
+    server_started = true;
+    process.stdout.write(data);
   });
+
+  server.stderr.on('data', function (data) {
+    process.stdout.write("" + data);
+  });
+
+  server.on('close', function (code) {
+    console.log('server closed: ' + code, "\n");
+  });
+
+  if (func)
+    func();
 }
 
 function shutdown_all() {

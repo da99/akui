@@ -105,6 +105,8 @@ function read_file_list(dir) {
 
 module.exports = function (test_dir) {
 
+  clear_results(function () { });
+
   var files = read_file_list(test_dir);
   var has_started = false;
 
@@ -157,21 +159,21 @@ module.exports = function (test_dir) {
 module.exports.clear_results = clear_results;
 module.exports.read_results  = read_results;
 
-var timeout = 250;
-var last = 0;
+var timeout     = 250;
+var last        = 0;
 var stop_stream = false;
 var stream_results = module.exports.stream_results = function (stream) {
+
   if (stop_stream)
     return;
+
   read_results(function (results, is_fin, stat) {
+    if (stat === 'waiting') {
+      last = now;
+    }
+
     var any = results.length !== 0;
     var now = (new Date).getTime();
-
-    if (stat !== 'started')
-      last = now;
-
-    if (is_fin)
-      stop_stream = true;
 
     if (any) {
       stream(results, is_fin, stat);
