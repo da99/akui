@@ -100,7 +100,7 @@ function write_result(result, done) {
 function read_file_list(dir) {
   return _.select(fs.readdirSync(dir), function (file, i) {
     if (process.env.TEST_FILE)
-      return file.indexOf(process.env.TEST_FILE) > -1;
+      return file.indexOf(process.env.TEST_FILE) === 0;
     else
       return file.match(/^[0-9]+\-/);
   }).sort();
