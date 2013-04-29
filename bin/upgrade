@@ -13,7 +13,7 @@ akui="public/akui.js"
 function re_download {
   rm -f "$1"
   wget -O "$1" "$2"
-  echo "$1" >> "$akui"
+  cat "$1" >> "$akui"
 }
 
 echo "" > "$akui"
