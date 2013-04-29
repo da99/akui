@@ -10,20 +10,21 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
-    "type": "git",
-    "url": "git://github.com/da99/ui_app_test.git"
+    "type" : "git",
+    "url"  : "git://github.com/da99/ui_app_test.git"
   },
   "keywords": [
     "da99"
   ],
   "dependencies" : {
     "underscore" : "x.x.x",
-    "redis" : "x.x.x",
-    "hiredis" : "x.x.x"
+    "redis"      : "x.x.x",
+    "hiredis"    : "x.x.x"
   },
   "devDependencies" : {
-    "express" : "x.x.x",
-    "chokidar" : "x.x.x"
+    "express"        : "x.x.x",
+    "chokidar"       : "x.x.x",
+    "cli-color" : "x.x.x"
   },
   "author": "da99",
   "license": "MIT",
