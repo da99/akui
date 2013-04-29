@@ -167,14 +167,16 @@ Akui.run = function () {
     }
 
     if (!Akui.total_for_page) {
-      console.log(Akui.report.all);
-      throw new Error("Akui: no tests found.");
+      if (r.is_fin)
+        console.log('Akui server: fin');
+      else
+        throw new Error("Akui: no tests found.");
     }
 
     if (Akui.report.all.length != (Akui.report.pass.length + Akui.report.fail.length))
-      throw new Error("Akui: timeout. Tests taking too long to finish.");
+      throw new Error("Akui client: timeout. Tests taking too long to finish.");
 
-    console.log("Akui: testing has finished.");
+    console.log("Akui client: fin");
   });
 };
 

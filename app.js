@@ -138,7 +138,9 @@ module.exports = function (test_dir) {
       var next_file = files.shift();
       var contents = (next_file) ? fs.readFileSync(path.join(test_dir, next_file)).toString() : null;
 
-      resp.json({success:true, code: contents, test_id: next_file});
+      read_status(function (stat) {
+        resp.json({success:true, code: contents, test_id: next_file, is_fin: stat === 'fin', akui_status: stat});
+      });
       return;
     }
 
