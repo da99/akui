@@ -99,7 +99,10 @@ function write_result(result, done) {
 
 function read_file_list(dir) {
   return _.select(fs.readdirSync(dir), function (file, i) {
-    return file.match(/^[0-9]+\-/);
+    if (process.env.TEST_FILE)
+      return file.match(process.env.TEST_FILE);
+    else
+      return file.match(/^[0-9]+\-/);
   }).sort();
 }
 
