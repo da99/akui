@@ -167,18 +167,19 @@ var stream_results = module.exports.stream_results = function (stream) {
     var any = results.length !== 0;
     var now = (new Date).getTime();
 
+    if (stat !== 'started')
+      last = now;
+
     if (is_fin)
       stop_stream = true;
 
     if (any) {
-      last = now;
       stream(results, is_fin, stat);
     }
 
     if (!any && stat === 'started') {
       if ((now - last) > (timeout * 10))
         stream('timeout');
-      return;
     }
 
     setTimeout( function () {  stream_results(stream); }, timeout );

@@ -34,14 +34,11 @@ var shell    = function (cmd, func) {
 var stop_stream = false;
 var stream_started = false;
 function stream_results() {
-    console.log('streaming...');
   if (stream_started)
     return;
   stream_started = true;
 
   akui.stream_results(function (r, is_fin, stat) {
-
-    console.log('streaming...');
 
     if (stop_stream)
       return;
