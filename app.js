@@ -13,8 +13,8 @@ client.on('error', function (err) {
 });
 var id_prefix = 'test_' + (new Date).getTime() + '_';
 var test_count = 0;
-var LIST_KEY = 'akui_results';
-var first_run = true;
+var LIST_KEY = 'Akui.RESULTS';
+var STATUS_KEY = 'Akui.STATUS';
 
 process.on('exit', function () {
   client.quit(function () {
@@ -23,8 +23,29 @@ process.on('exit', function () {
 });
 
 function clear_results(done) {
-  read_results(done);
+  read_results(function (results, is_fin) {
+    update_status('waiting', function () {
+      done(results, is_fin);
+    });
+  });
 };
+
+function read_status(func) {
+  client.get(STATUS_KEY, function (err, reply) {
+    if (err) throw err;
+    if (func)
+      func(reply);
+  });
+}
+
+function update_status(val, func) {
+  client.set(STATUS_KEY, val, function (err, reply) {
+    console.log('new stat: ', val, reply);
+    if (err) throw err;
+    if (func)
+      func(reply);
+  });
+}
 
 function read_results(done) {
   var results = [];
@@ -34,9 +55,8 @@ function read_results(done) {
       pop(push);
     } else {
 
-      client.get('Akui.STATUS', function (err, reply) {
-        if (err) throw err;
-        done(results, reply === 'fin');
+      read_status(function (stat) {
+        done(results, stat === 'fin', stat);
       });
     }
   };
@@ -51,7 +71,7 @@ function pop(done) {
 
     client.get(id, function (err, result) {
       if (err) throw err;
-      done(id, result);
+      done(id, JSON.parse(result));
     });
   });
 }
@@ -63,7 +83,7 @@ function write_result(result, done) {
     var id = p[0];
     var r  = p[1];
     if (r.toString().trim() === '') {
-        waits.shift();
+      waits.shift();
       return;
     }
     client.rpush(LIST_KEY, id, function (err, replys) {
@@ -87,11 +107,21 @@ function read_file_list(dir) {
 module.exports = function (test_dir) {
 
   var files = read_file_list(test_dir);
+  var has_started = false;
 
   return function (req, resp, next) {
+
+    if (!has_started) {
+      has_started = true
+      update_status('started');
+    }
+
+
     if (req.url === '/akui_tests/report' && req.method === 'POST') {
       write_result(req.body, function () {
         console['log']("AKUI: results saved.");
+        if (!files.length)
+          update_status('fin');
         resp.json({success: true});
       });
       return;
@@ -108,27 +138,7 @@ module.exports = function (test_dir) {
       var next_file = files.shift();
       var contents = (next_file) ? fs.readFileSync(path.join(test_dir, next_file)).toString() : null;
 
-      if (contents) {
-        client.set('Akui.STATUS', 'start', function (err, reply) {
-          if (err) throw err;
-        });
-      } else {
-        client.set('Akui.STATUS', 'fin', function (err, reply) {
-          if (err) throw err;
-        });
-      }
-
-      var fin = function () {
-        resp.json({success:true, code: contents, test_id: next_file});
-      };
-
-      if (first_run) {
-        first_run = false;
-        read_results(fin);
-        return;
-      }
-
-      fin();
+      resp.json({success:true, code: contents, test_id: next_file});
       return;
     }
 
@@ -136,7 +146,10 @@ module.exports = function (test_dir) {
       req.url = req.url.replace('/akui_tests', '');
       return static(req, resp, next);
     }
+
     next();
+
+
   };
 
 }; // === init
@@ -144,20 +157,36 @@ module.exports = function (test_dir) {
 module.exports.clear_results = clear_results;
 module.exports.read_results  = read_results;
 
-var timeout    = 250;
-
+var timeout = 250;
+var last = 0;
+var stop_stream = false;
 var stream_results = module.exports.stream_results = function (stream) {
-  read_results(function (results, is_fin) {
+  if (stop_stream)
+    return;
+  read_results(function (results, is_fin, stat) {
     var any = results.length !== 0;
+    var now = (new Date).getTime();
 
-    if (any)
-      stream(results, is_fin);
+    if (is_fin)
+      stop_stream = true;
+
+    if (any) {
+      last = now;
+      stream(results, is_fin, stat);
+    }
+
+    if (!any && stat === 'started') {
+      if ((now - last) > (timeout * 10))
+        stream('timeout');
+      return;
+    }
 
     setTimeout( function () {  stream_results(stream); }, timeout );
   });
 };
 
 var quit = module.exports.quit = function (func) {
+  stop_stream = true;
   client.quit(func || function () { process.exit(); });
 };
 

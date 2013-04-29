@@ -30,24 +30,36 @@ var shell    = function (cmd, func) {
 };
 
 var stop_stream = false;
-var fetched=false;
+var stream_started = false;
 function stream_results() {
-  console.log('streaming...');
-
-  if (stop_stream)
+  if (stream_started)
     return;
+  stream_started = true;
 
-  akui.read_results(function (results, is_fin) {
-    if (results.length) {
-      fetched = true;
-      console.log('Fetched: ', results);
-    }
+  akui.stream_results(function (r, is_fin, stat) {
 
-    if (fetched && is_fin) {
-      console.log('Finished fetching results.');
+    console.log('streaming...');
+
+    if (stop_stream)
       return;
+
+    if (r === 'timeout') {
+      console.log('Akui: timed out.');
+    } else {
+
+      if (r.length) {
+        _.each(r, function (pair) {
+          var file = pair[0];
+          var results = pair[1];
+          console.log(file, "pass:", results.pass.length, "fail:", results.fail.length);
+        });
+      }
+
+      if (is_fin) {
+        console.log('Finished fetching results.');
+        return;
+      }
     }
-    setTimeout(stream_results, 550);
   });
 }
 
@@ -161,7 +173,7 @@ function close() {
         setTimeout(function () {
           console.log("forcing exit...");
           process.exit();
-          }, 3000);
+          }, 1000);
     });
   }
 }
