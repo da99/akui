@@ -100,7 +100,7 @@ function write_result(result, done) {
 function read_file_list(dir) {
   return _.select(fs.readdirSync(dir), function (file, i) {
     if (process.env.TEST_FILE)
-      return file.match(process.env.TEST_FILE);
+      return file.indexOf(process.env.TEST_FILE) > -1;
     else
       return file.match(/^[0-9]+\-/);
   }).sort();
@@ -171,12 +171,13 @@ var stream_results = module.exports.stream_results = function (stream) {
     return;
 
   read_results(function (results, is_fin, stat) {
+    var now = (new Date).getTime();
+
     if (stat === 'waiting') {
       last = now;
     }
 
     var any = results.length !== 0;
-    var now = (new Date).getTime();
 
     if (any) {
       stream(results, is_fin, stat);

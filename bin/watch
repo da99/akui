@@ -6,7 +6,7 @@
 
 // set -u -e -o pipefail
 
-
+process.env.TEST_FILE = "0";
 
 var _        = require('underscore');
 var chokidar = require('chokidar');
