@@ -131,7 +131,6 @@ module.exports = function (test_dir) {
         if (!files.length)
           update_status('fin');
         if (has_fails(req.body)) {
-          console.log((req.body));
           files = [];
           update_status('fin');
         }
