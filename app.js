@@ -165,6 +165,7 @@ module.exports.read_results  = read_results;
 var timeout     = 250;
 var last        = 0;
 var stop_stream = false;
+var to_shown    = false;
 var stream_results = module.exports.stream_results = function (stream) {
 
   if (stop_stream)
@@ -181,11 +182,13 @@ var stream_results = module.exports.stream_results = function (stream) {
 
     if (any) {
       stream(results, is_fin, stat);
+      to_shown = false;
     }
 
-    if (!any && stat === 'started') {
-      if ((now - last) > (timeout * 10))
+    if (!any && stat === 'started' && ((now - last) > (timeout * 10))) {
+      if (!to_shown)
         stream('timeout');
+      to_shown = true;
     }
 
     setTimeout( function () {  stream_results(stream); }, timeout );
