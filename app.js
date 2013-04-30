@@ -119,7 +119,6 @@ module.exports = function (test_dir) {
   var has_started = false;
 
   return function (req, resp, next) {
-
     if (!has_started && req.method === 'GET') {
       has_started = true
       update_status('started');
