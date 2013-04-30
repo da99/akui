@@ -22,6 +22,11 @@ process.on('exit', function () {
   });
 });
 
+function has_fails(report) {
+  return !!_.find(report, function (results, filename) {
+    return results.fail.length > 0;
+  });
+}
 function clear_results(done) {
   read_results(function (results, is_fin) {
     update_status('waiting', function () {
@@ -125,6 +130,11 @@ module.exports = function (test_dir) {
       write_result(req.body, function () {
         if (!files.length)
           update_status('fin');
+        if (has_fails(req.body)) {
+          console.log((req.body));
+          files = [];
+          update_status('fin');
+        }
         resp.json({success: true});
       });
       return;
