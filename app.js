@@ -115,7 +115,7 @@ module.exports = function (test_dir) {
 
   return function (req, resp, next) {
 
-    if (!has_started) {
+    if (!has_started && req.url.indexOf('.html')) {
       has_started = true
       update_status('started');
     }
@@ -199,12 +199,27 @@ var quit = module.exports.quit = function (func) {
 
 
 if (process.argv.indexOf(__dirname + '/app.js') > -1) {
+
+  var home_page = fs.readFileSync('public/_index.html').toString();
+
   process.on('SIGINT', quit);
   process.on('SIGTERM', quit);
   var app = express();
+
   app.use(express.logger('dev'));
   app.use(express.bodyParser());
+  app.use(express.methodOverride());
+  app.use(express.cookieParser());
+  app.use(express.cookieSession({secret: (new Date).getTime() + '' + parseInt(Math.random() * 10000)}));
+  app.use(express.csrf());
+
   app.use(module.exports('tests'));
+  app.use(function (req, resp, next) {
+    if (req.url === '/' && req.method === 'GET')
+      resp.send(home_page.replace('{{_csrf}}', req.session._csrf));
+    else
+      next();
+  });
   app.use('/', express.static(__dirname + '/public'));
   app.use(function (err, req, resp, next) {
     console.log(err);

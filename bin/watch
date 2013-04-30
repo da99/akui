@@ -56,7 +56,9 @@ function stream_results() {
   });
 }
 
-stream_results();
+akui.clear_results(function () {
+  stream_results();
+});
 
 
 // ****************************************************************
@@ -82,18 +84,25 @@ watch("bin/watch")
 .on('error', throw_err);
 ;
 
+
 watch( [path.resolve("./app.js") , "tests", 'public'] )
 .on('add', function (f) {
+  if (js_file(f))
+    return;
   if (!server_started)
     return;
   console.log("\nadded: " + f);
   restart_server();
 })
 .on('change', function (filename) {
+  if (js_file(filename))
+    return;
   console.log("\nchanged: " + filename);
   restart_server();
 })
 .on('unlink', function (filename) {
+  if (js_file(filename))
+    return;
   console.log("\ndeleted: " + filename);
   restart_server();
 })
@@ -102,6 +111,14 @@ watch( [path.resolve("./app.js") , "tests", 'public'] )
 
 
 console.log("Watching: ", _.flatten(watched_dirs).join(', '), "\n");
+
+function js_file(f) {
+  if (f.indexOf('base.js') > -1 || f.indexOf('akui.js') > -1) {
+    shell("bin/upgrade skip_download", function () {});
+  }
+  return f.indexOf('akui.js') > -1;
+}
+
 
 function shutdown_server(func) {
   exec('bin/stop', function (err, so, se) {

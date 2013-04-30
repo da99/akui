@@ -9,10 +9,13 @@ set -u -e -o pipefail
 #
 
 akui="public/akui.js"
-
+settings="$@"
 function re_download {
-  rm -f "$1"
-  wget -O "$1" "$2"
+  if [[ ! "$settings" == *skip_download* ]]
+  then
+    rm -f "$1"
+    wget -O "$1" "$2"
+  fi
   cat "$1" >> "$akui"
 }
 

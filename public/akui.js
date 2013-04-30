@@ -619,8 +619,11 @@ Akui.finish = function () {
 
   var data = {};
   data[Akui.current.test_id] = (Akui.report);
+  var headers = {
+   'x-csrf-token': (window._csrf && typeof window._csrf === 'function') ? _csrf() : $('#_csrf').text().trim()
+  };
 
-  return fermata.json("/akui_tests/report").post(data, function (err, result) {
+  return fermata.json("/akui_tests/report").post(headers, data, function (err, result) {
     if (err) throw err;
     console.log('Akui report sent: ' + JSON.stringify(result));
     Akui.trigger('finish');
