@@ -181,6 +181,10 @@ Akui.run = function () {
 };
 
 Akui.finish = function () {
+  var win_errs = window.akui_window_errs;
+  if (win_errs && win_errs.length)
+    return;
+
   if (Akui.report.waits.length) {
     console.log('Akui: waiting to finish...');
     Akui.report.waits.sort();
@@ -203,14 +207,6 @@ Akui.finish = function () {
 // ================================================================
 // ================== Showtime! ===================================
 // ================================================================
-
-if (window.akui_window_errs) {
-  _.each(window.akui_window_errs, function (err, i) {
-    Akui.test("window: must not contain errs", function (assert) {
-      assert(null, err);
-    });
-  });
-}
 
 Akui.run();
 
