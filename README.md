@@ -9,6 +9,7 @@ stuff in the browser:
   * [Karma (aka Testacular)](http://karma-runner.github.io/)
   * [Casper.js](http://casperjs.org/)
   * [Buster.js](http://busterjs.org/)
+  * [Watir](http://watir.com)  <--- my favorite
   * ... and a million other alternatives.
 
 Dependencies
