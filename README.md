@@ -18,7 +18,8 @@ Dependencies
   * jQuery >= 1.9.1+
   * Underscore >= 1.4.3
   * Backbone >= 1.0.0
-  * Proclaim > 0.0.0
+  * Fermata > 0.0.0
+  * Promise > 0.0.0
 
 Install:
 ========
