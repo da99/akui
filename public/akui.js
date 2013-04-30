@@ -204,6 +204,13 @@ Akui.finish = function () {
 // ================== Showtime! ===================================
 // ================================================================
 
+if (window.akui_window_errs) {
+  _.each(window.akui_window_errs, function (err, i) {
+    Akui.test("window: must not contain errs", function (assert) {
+      assert(null, err);
+    });
+  });
+}
 
 Akui.run();
 
