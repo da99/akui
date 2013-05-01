@@ -1,6 +1,6 @@
 {
   "name": "akui",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Personal way of testing a web app ui.",
   "main": "app.js",
   "directories": {
