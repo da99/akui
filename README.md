@@ -2,6 +2,10 @@
 Intro:
 =====
 
+Automate testing code on the browser by using Rack
+middleware to include JS testing code files
+into your rendered HTML.
+
 This is not useful to you. Instead, use the following for testing
 stuff in the browser:
 
@@ -17,24 +21,21 @@ Dependencies
 
   * jQuery >= 1.9.1+
   * Underscore >= 1.4.3
-  * Backbone >= 1.0.0
-  * Fermata > 0.0.0
-  * Promise > 0.0.0
+  * [Fermata](https://github.com/natevw/fermata) > 0.0.0
 
 Install:
 ========
 
-Latest version:
+```ruby
+  gem install akui
+```
 
-    git clone https://github.com/da99/akui.git
-    cp akui/index.html  MY_TESTS.html
+NOTE:
+=====
 
-Edit `MY_TESTS.html` to add in your script with your tests.
-
-Running Tests:
-=============
-
-     # open file in your browser: MY_TESTS.html
+This was originally a npm module.
+That code is still available in the
+[nodejs branch](https://github.com/da99/akui/tree/nodejs).
 
 
 
