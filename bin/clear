@@ -1,7 +1,0 @@
-#!/usr/bin/env node
-
-var akui     = require('../app');
-
-akui.clear_results(function (results, is_fin) {
-  akui.quit();
-});

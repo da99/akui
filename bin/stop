@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-# -*- bash -*-
-#
-set -u -e -o pipefail
-
-
-pkill --signal INT -f "node app.js"
-
-
