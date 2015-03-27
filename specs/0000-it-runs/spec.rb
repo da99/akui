@@ -45,7 +45,7 @@ Akui.define {
 
     it 'has link to: /1', <<-EOF
       var link = $('a[href="/1"]');
-      should_equal( link.text(), 'one' );
+      should.equal( link.text(), 'one' );
       link.click();
     EOF
 
@@ -54,7 +54,7 @@ Akui.define {
   describe '/1' do
     it 'has link to: /2', <<-EOF
       var link = $('a[href="/2"]');
-      should_equal( link.text(), 'two' );
+      should.equal( link.text(), 'two' );
       link.click();
     EOF
   end
@@ -62,7 +62,7 @@ Akui.define {
   describe '/2' do
     it 'has link to: /3', <<-EOF
       var link = $('a[href="/3"]');
-      should_equal( link.text(), 'three' );
+      should.equal( link.text(), 'three' );
       link.click();
     EOF
   end
@@ -70,7 +70,7 @@ Akui.define {
   describe '/3' do
     it 'has link to: /', <<-EOF
       var link = $('a[href="/"]');
-      should_equal( link.text(), 'root' );
+      should.equal( link.text(), 'root' );
       link.click();
     EOF
   end

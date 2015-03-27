@@ -85,15 +85,19 @@ class Akui
         }
 
         on('run') {
-          unless Akui.running?
-            Akui.reset
-            Akui.shift
-          end
           pathname = URI.parse(req.env['HTTP_REFERER']).path
           res['Content-Type'] = 'application/json'
 
-          while (test = Akui.shift) && test[:parent][:path] != pathname
-          end
+          test = if Akui.running?
+                   Akui.shift
+                 else
+                   Akui.reset
+                   Akui.shift
+
+                   while (test = Akui.shift) && test[:parent][:path] != pathname
+                   end
+                   test
+                 end
 
           if test
             res.write Escape_Escape_Escape.json_encode({:test=>test})
