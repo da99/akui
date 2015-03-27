@@ -7,6 +7,9 @@ set -u -e -o pipefail
 action="$1"
 shift
 
+port="4567"
+thin_cmd="bundle exec thin --port $port --log tmp/log.log --pid tmp/pid.pid -R specs/config.ru"
+
 case "$action" in
 
   "help")
@@ -19,14 +22,13 @@ case "$action" in
     echo " $  akui   test"
     echo " $  akui   test   name"
     echo ""
+    echo " === Default: args are used to start the server"
+    echo " $  akui -d start"
+    echo " $  akui start"
     echo " ====================================================="
     echo ""
     exit 0
     ;;  # === start
-
-  "start")
-    bundle exec thin -R specs/lib/config.ru  start
-    ;;
 
   "watch")
     echo "=== Watching: "
@@ -68,7 +70,7 @@ case "$action" in
   "test")
     files=""
     if [[ ! -z "$@" ]]; then
-      files="$(echo -n specs/*-$1.rb)"
+      files="$(echo -n specs/*-$1/spec.rb)"
       if [[ -f "$files" ]]; then
         shift
       else
@@ -77,20 +79,45 @@ case "$action" in
     fi
 
     if [[ -z "$files" ]]; then
-      files="$(echo -n specs/*.rb | tr ' ' '\n' | sort)"
+      files="$(echo -n specs/*/spec.rb | tr ' ' '\n' | sort)"
     fi
 
     if [[ -z "$files" ]]; then
       colorize yellow "No tests found." 1>&2
       exit 0
     else
-      bundle exec bacon specs/lib/helpers.rb $files "$@"
+      bundle exec bacon specs/helpers.rb $files "$@"
     fi
     ;; # === test
 
+  "stop")
+    $thin_cmd $@ stop
+    rm -f tmp/log.log
+    ;;
+
   *)
-    echo "=== Unknown action: $action" 1>&2
-    exit 1
+    rm -f tmp/log.log
+    echo -n "=== Server is starting"
+    SPEC_FILE="0000-it-runs" $thin_cmd $action $@
+
+    if [[ -f tmp/pids.pid ]]; then
+
+      while [ ! -f tmp/log.log ]
+      do
+        echo -n '.'
+        sleep 0.1
+      done
+
+      echo ""
+
+      grep --color -E 'Exiting|from |$' tmp/log.log
+      if [[ "$@" == *start* && "$(cat tmp/log.log)" != *Exiting* ]]
+      then
+        google-chrome http://localhost:$port
+      fi
+
+    fi # === if pid exists
+
     ;;
 
 esac

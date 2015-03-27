@@ -26,6 +26,7 @@ Gem::Specification.new do |spec|
   spec.required_ruby_version = '>= 2.2.0'
 
   spec.add_dependency "cuba", "> 3.3"
+  spec.add_dependency "escape_escape_escape", "> 1.4"
 
   spec.add_development_dependency "pry"           , "~> 0.9"
   spec.add_development_dependency "www_app"       , "> 2.0"
