@@ -24,6 +24,10 @@ case "$action" in
     exit 0
     ;;  # === start
 
+  "start")
+    bundle exec thin -R specs/lib/config.ru  start
+    ;;
+
   "watch")
     echo "=== Watching: "
     inotifywait -q --exclude .git/ -e close_write,close -m -r .  | while read CHANGE
@@ -54,10 +58,10 @@ case "$action" in
     ;; # === watch
 
   "Public")
-    Public_Folder="$(dirname $(dirname $(readlink -f $0)))/lib/Public"
+    Public_Folder="$(dirname $(dirname $(readlink -f $0)))/lib/Public/akui"
     new_folder="Public/akui"
     mkdir -p Public
-    cp -i $Public_Folder $new_folder
+    cp -i -r $Public_Folder $new_folder
     echo "=== copied: ${Public_Folder} -> ${new_folder}"
     ;; # === Public
 
