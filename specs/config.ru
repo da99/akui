@@ -18,8 +18,7 @@ class Custom_Try_Static
   end
 
   def call(env)
-    puts env.keys.grep(/method/i)
-    return @app.call(env) unless %w[GET HEAD].include?(env['HTTP_METHOD'])
+    return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
     orig_path = env['PATH_INFO']
     found = nil
     @try.each do |path|
