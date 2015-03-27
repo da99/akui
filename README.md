@@ -2,9 +2,9 @@
 Intro:
 =====
 
-Automate testing code on the browser by using Rack
-middleware to include JS testing code files
-into your rendered HTML.
+A Ruby gem that helps me automate testing JS code on the browser.
+It uses a Rack middleware to include JS testing code files
+into the rendered HTML.
 
 This is not useful to you. Instead, use the following for testing
 stuff in the browser:
