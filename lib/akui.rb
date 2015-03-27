@@ -38,6 +38,32 @@ class Akui
           EOF
         }
 
+        on('results') {
+          res.write <<-EOF
+            <html>
+              <head>
+                <title>Akui Results</title>
+                <style type="text/css">
+                  body, pre {
+                    background: #F2F2F2;
+                    font-family: Ubuntu Mono, monospace;
+                  }
+                  a:link {
+                    padding: 4px;
+                  }
+                  a:hover {
+                    background: green;
+                    color: #fff;
+                  }
+                </style>
+              </head>
+              <body>
+                Done.
+              </body>
+            </html>
+          EOF
+        }
+
         on('inspect') {
           res['Content-Type'] = 'application/json'
           res.write Escape_Escape_Escape.json_encode({tests: ::Akui.tests})
@@ -45,17 +71,35 @@ class Akui
 
         on('run') {
           Akui.reset
-          Akui.pop
+          Akui.shift
           res.redirect Akui.current[:path].to_s, ::Akui::MOVED_TEMP
         }
       end # === on get
 
 
       on post do
-        on('run') {
-          Akui.reset unless Akui.running?
+        on('result', param('result')) { |result|
+          past[:result] = result
           res['Content-Type'] = 'application/json'
-          res.write Escape_Escape_Escape.json_encode({:test=>Akui.pop})
+          res.write Escape_Escape_Escape.json_encode({:result=>result})
+        }
+
+        on('run') {
+          unless Akui.running?
+            Akui.reset
+            Akui.shift
+          end
+          pathname = URI.parse(req.env['HTTP_REFERER']).path
+          res['Content-Type'] = 'application/json'
+
+          while (test = Akui.shift) && test[:parent][:path] != pathname
+          end
+
+          if test
+            res.write Escape_Escape_Escape.json_encode({:test=>test})
+          else
+            res.write Escape_Escape_Escape.json_encode({:test=>nil, :redirect=>File.join(req.env['REQUEST_PATH'], 'results')})
+          end
         }
       end # === on pot
     }
@@ -69,14 +113,22 @@ class Akui
         d[:its].map { |i|
           i = i.dup
           i[:parent] = d
+          i
         }
       }.flatten
       @current_tests.unshift false
+      @results = []
       @past    = []
     end
 
-    def pop
-      @current_tests.shift
+    def shift
+      t = @current_tests.shift
+      @past.push t
+      t
+    end
+
+    def past
+      past.last
     end
 
     def current
