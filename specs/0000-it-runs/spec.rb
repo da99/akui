@@ -26,6 +26,10 @@ Cuba.define do
           <head><title>#{k}</title></head>
           <body>
             <a href="/#{n + 1 == 4 ? '/' : n + 1}">#{vals[n+1]}</a>
+            <script src="/bower_components/jquery/dist/jquery.min.js"></script>
+            <script src="/bower_components/lodash/lodash.min.js"></script>
+            <script src="/bower_components/fermata/fermata.js"></script>
+            <script src="/akui/akui.js"></script>
           </body>
         </html>
         EOF

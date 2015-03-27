@@ -41,11 +41,14 @@ case "$action" in
 
       if [[ ( ! "$op" =~ "NOWRITE" ) && ( "$op" =~ "CLOSE" || "$op" =~ "WRITE" )  && ! -z "$file" ]]
       then
-        echo ""
-        if [[ "$file" == *.js* ]]; then
+        echo "$op -> $path"
+
+        if [[ "$path" == *lib/browser* && "$file" == *.js* ]]; then
           echo ""
           echo "=== Runninig jshint on $path: $CHANGE"
           (jshint "$path" && echo "No errors.") || true
+          mkdir -p Public/akui
+          cp $path Public/akui/$file
         fi
 
         if [[ "$path" == *bin/akui* ]]; then
@@ -60,7 +63,7 @@ case "$action" in
     ;; # === watch
 
   "Public")
-    Public_Folder="$(dirname $(dirname $(readlink -f $0)))/lib/Public/akui"
+    Public_Folder="$(dirname $(dirname $(readlink -f $0)))/lib/browser/akui"
     new_folder="Public/akui"
     mkdir -p Public
     cp -i -r $Public_Folder $new_folder

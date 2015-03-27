@@ -53,8 +53,9 @@ class Akui
 
       on post do
         on('run') {
+          Akui.reset unless Akui.running?
           res['Content-Type'] = 'application/json'
-          res.write Akui.pop.inspect
+          res.write Escape_Escape_Escape.json_encode({:test=>Akui.pop})
         }
       end # === on pot
     }
@@ -83,7 +84,7 @@ class Akui
     end
 
     def running?
-      @current_tests.first != false
+      !!(@current_tests && @current_tests.first != false)
     end
 
     def print *args

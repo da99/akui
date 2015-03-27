@@ -1,0 +1,5 @@
+{
+  "directory": "Public/bower_components",
+  "timeout": 5000,
+  "strict-ssl": true
+}
