@@ -58,7 +58,9 @@ class Akui
                 </style>
               </head>
               <body>
-                Done.
+                <p>All tests appear to have passed:</p>
+              <a href="#{File.expand_path(File.join req.env['REQUEST_PATH'], '../run')}">Run all</a>
+                <pre>#{::Akui.print}</pre>
               </body>
             </html>
           EOF
@@ -72,7 +74,7 @@ class Akui
         on('run') {
           Akui.reset
           Akui.shift
-          res.redirect Akui.current[:path].to_s, ::Akui::MOVED_TEMP
+          res.redirect Akui.current[:parent][:path].to_s, ::Akui::MOVED_TEMP
         }
       end # === on get
 
@@ -88,21 +90,24 @@ class Akui
           pathname = URI.parse(req.env['HTTP_REFERER']).path
           res['Content-Type'] = 'application/json'
 
-          test = if Akui.running?
-                   Akui.shift
-                 else
-                   Akui.reset
-                   Akui.shift
-
-                   while (test = Akui.shift) && test[:parent][:path] != pathname
-                   end
-                   test
-                 end
-
-          if test
+          case
+          when Akui.running? && !Akui.done?
+            test = Akui.shift
             res.write Escape_Escape_Escape.json_encode({:test=>test})
+          when Akui.running? && Akui.done?
+            res.write Escape_Escape_Escape.json_encode({:test=>nil, :redirect=>File.expand_path(File.join(req.env['REQUEST_PATH'], '../results'))})
           else
-            res.write Escape_Escape_Escape.json_encode({:test=>nil, :redirect=>File.join(req.env['REQUEST_PATH'], 'results')})
+            Akui.reset
+            Akui.shift
+
+            while (test = Akui.shift) && test[:parent][:path] != pathname
+            end
+
+            if test
+              res.write Escape_Escape_Escape.json_encode({:test=>test})
+            else
+              res.write Escape_Escape_Escape.json_encode({:test=>nil, :error=>'No test found.'})
+            end
           end
         }
       end # === on pot
@@ -127,6 +132,8 @@ class Akui
 
     def shift
       t = @current_tests.shift
+      if @current_tests.empty?
+      end
       @past.push t
       t
     end
@@ -139,8 +146,13 @@ class Akui
       @current_tests.first
     end
 
+    def done?
+      running? && @current_tests.empty?
+    end
+
     def running?
-      !!(@current_tests && @current_tests.first != false)
+      return false if !@current_tests
+      true
     end
 
     def print *args
