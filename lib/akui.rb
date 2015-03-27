@@ -5,6 +5,7 @@ require 'escape_escape_escape'
 class Akui
 
   VERSION = `cat #{File.dirname __FILE__}/../VERSION`.strip
+  MOVED_TEMP    = 302
 
   class Middleware < Cuba
 
@@ -20,9 +21,17 @@ class Akui
                   background: #F2F2F2;
                   font-family: Ubuntu Mono, monospace;
                 }
+                a:link {
+                  padding: 4px;
+                }
+                a:hover {
+                  background: green;
+                  color: #fff;
+                }
               </style>
             </head>
             <body>
+              <a href="#{File.join req.env['REQUEST_PATH'], '/run'}">Run all</a>
               <pre>#{::Akui.print}</pre>
             </body>
           </html>
@@ -33,12 +42,49 @@ class Akui
           res['Content-Type'] = 'application/json'
           res.write Escape_Escape_Escape.json_encode({tests: ::Akui.tests})
         }
-      end
+
+        on('run') {
+          Akui.reset
+          Akui.pop
+          res.redirect Akui.current[:path].to_s, ::Akui::MOVED_TEMP
+        }
+      end # === on get
+
+
+      on post do
+        on('run') {
+          res['Content-Type'] = 'application/json'
+          res.write Akui.pop.inspect
+        }
+      end # === on pot
     }
 
   end # === class Middleware
 
   class << self
+
+    def reset
+      @current_tests = tests.map { |d|
+        d[:its].map { |i|
+          i = i.dup
+          i[:parent] = d
+        }
+      }.flatten
+      @current_tests.unshift false
+      @past    = []
+    end
+
+    def pop
+      @current_tests.shift
+    end
+
+    def current
+      @current_tests.first
+    end
+
+    def running?
+      @current_tests.first != false
+    end
 
     def print *args
       type, o = args
