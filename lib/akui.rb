@@ -4,12 +4,29 @@ require 'escape_escape_escape'
 
 class Akui
 
+  VERSION = `cat #{File.dirname __FILE__}/../VERSION`.strip
+
   class Middleware < Cuba
 
     define {
       on get do
         on(root) {
-          res.write 'Not done'
+          res.write <<-EOF
+          <html>
+            <head>
+              <title>Akui v#{::Akui::VERSION}</title>
+              <style type="text/css">
+                body, pre {
+                  background: #F2F2F2;
+                  font-family: Ubuntu Mono, monospace;
+                }
+              </style>
+            </head>
+            <body>
+              <pre>#{::Akui.print}</pre>
+            </body>
+          </html>
+          EOF
         }
 
         on('inspect') {
@@ -22,6 +39,27 @@ class Akui
   end # === class Middleware
 
   class << self
+
+    def print *args
+      type, o = args
+      case type
+
+      when nil, :all
+        tests.map { |desc|
+          print :desc, desc
+        }.join "\n".freeze
+
+      when :describe, :desc
+        %^DESC #{o[:path]} #{o[:name] && o[:name].inspect}\n^ +
+          %^#{o[:its].map { |it| print :it, it }.join "\n"}^
+
+      when :it
+        %^  it #{o[:name].inspect}\n#{o[:script]}^
+
+      else
+        fail ArgumentError, "Unknown args: #{args.inspect}"
+      end
+    end
 
     def define
       instance_eval(&Proc.new)

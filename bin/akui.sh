@@ -97,7 +97,7 @@ case "$action" in
 
   *)
     rm -f tmp/log.log
-    echo -n "=== Server is starting"
+    echo "=== Server is starting"
     SPEC_FILE="0000-it-runs" $thin_cmd $action $@
 
     if [[ -f tmp/pids.pid ]]; then
