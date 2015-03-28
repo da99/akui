@@ -39,6 +39,7 @@ class Akui
         }
 
         on('results') {
+          Akui.stop
           res.write <<-EOF
             <html>
               <head>
@@ -117,6 +118,10 @@ class Akui
 
   class << self
 
+    def stop
+      @current_tests = nil
+    end
+
     def reset
       @current_tests = tests.map { |d|
         d[:its].map { |i|
@@ -165,7 +170,7 @@ class Akui
         }.join "\n".freeze
 
       when :describe, :desc
-        %^DESC #{o[:path]} #{o[:name] && o[:name].inspect}\n^ +
+        %^DESC <a href="#{Escape_Escape_Escape.relative_href o[:path].to_s}">#{Escape_Escape_Escape.html o[:path].to_s}</a> #{o[:name] && o[:name].inspect}\n^ +
           %^#{o[:its].map { |it| print :it, it }.join "\n"}^
 
       when :it
