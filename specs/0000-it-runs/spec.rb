@@ -12,6 +12,11 @@ Cuba.define do
     run Akui::Middleware
   end
 
+  on 'finished' do
+    `touch Public/finished.txt`
+    res.redirect '/akui/results', Akui::MOVED_TEMP
+  end
+
   on get do
     on root do
       res.write <<-EOF.strip
@@ -76,7 +81,7 @@ Akui.define {
     it 'has link to: /', <<-EOF
       var link = $('a[href="/"]');
       should.equal( link.text(), 'root' );
-      link[0].click();
+      window.location.href = "/finished";
     EOF
   end
 

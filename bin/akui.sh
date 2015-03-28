@@ -17,7 +17,7 @@ case "$action" in
     echo ""
     echo " $  akui   watch"
     echo ""
-    echo " $  akui   Public"
+    echo " $  akui   js_install"
     echo ""
     echo " $  akui   test"
     echo " $  akui   test   name"
@@ -62,12 +62,11 @@ case "$action" in
 
     ;; # === watch
 
-  "Public")
-    Public_Folder="$(dirname $(dirname $(readlink -f $0)))/lib/browser/akui"
-    new_folder="Public/akui"
-    mkdir -p Public
-    cp -i -r $Public_Folder $new_folder
-    echo "=== copied: ${Public_Folder} -> ${new_folder}"
+  "js_install")
+    dir="$(dirname $(dirname $(readlink -f $0)))/lib/browser/akui"
+    echo cp -i -r $dir/ .
+    cp -i -r $dir/ .
+    echo "=== copied: ${dir} -> $(pwd)/$(basename $dir)"
     ;; # === Public
 
   "test")
@@ -82,14 +81,57 @@ case "$action" in
     fi
 
     if [[ -z "$files" ]]; then
-      files="$(echo -n specs/*/spec.rb | tr ' ' '\n' | sort)"
+      files="$(echo -n specs/*-* | tr ' ' '\n' | sort)"
     fi
 
     if [[ -z "$files" ]]; then
       colorize yellow "No tests found." 1>&2
       exit 0
     else
-      bundle exec bacon specs/helpers.rb $files "$@"
+      mkdir -p Public
+      cd Public
+      ../bin/akui js_install
+      cd ..
+
+      counter=1
+      for i in $files
+      do
+
+        rm -f tmp/log.log
+        echo ""
+        echo "=== SPEC: $(basename $i)"
+        SPEC_FILE="$(basename $i)" $thin_cmd -d start
+
+        curl_i=0
+        code="0000"
+        while [[ curl_i -lt 7 && "$code" -lt 100 ]]
+        do
+          curl_i=$(( $curl_i + 1 ))
+          code="$(curl --silent -o /dev/null -w "%{http_code}" http://localhost:$port/ || echo "0")"
+          sleep 0.1
+        done
+
+        if [[ -f tmp/pid.pid ]]; then
+          google-chrome "http://localhost:$port/akui/run"
+        fi
+
+        while [[ -f tmp/pid.pid && $counter -lt 60 &&  ! -f Public/finished.txt ]];
+        do
+          counter=$(( $counter + 1 ))
+          sleep 0.1
+        done
+
+        if [[ -f tmp/pid.pid ]]; then
+          SPEC_FILE="$i" $thin_cmd -d stop
+        else
+          tree tmp
+          grep --color -E 'Exiting|from |$' tmp/log.log
+          exit 1
+        fi
+
+      done
+
+      rm -rf Public/akui
     fi
     ;; # === test
 

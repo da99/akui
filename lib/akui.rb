@@ -94,9 +94,15 @@ class Akui
           case
           when Akui.running? && !Akui.done?
             test = Akui.shift
-            res.write Escape_Escape_Escape.json_encode({:test=>test})
+            if pathname != test[:parent][:path].to_s
+              res.write Escape_Escape_Escape.json_encode({:test=>nil, :error=>"Wrong path name: expected: #{test[:parent][:path]}  actual: #{pathname}"})
+            else
+              res.write Escape_Escape_Escape.json_encode({:test=>test})
+            end
+
           when Akui.running? && Akui.done?
             res.write Escape_Escape_Escape.json_encode({:test=>nil, :redirect=>File.expand_path(File.join(req.env['REQUEST_PATH'], '../results'))})
+
           else
             Akui.reset
             Akui.shift
