@@ -28,11 +28,11 @@ Gem::Specification.new do |spec|
   spec.add_dependency "cuba", "> 3.3"
   spec.add_dependency "escape_escape_escape", "> 1.4"
 
-  spec.add_development_dependency "pry"           , "~> 0.9"
-  spec.add_development_dependency "www_app"       , "> 2.0"
-  spec.add_development_dependency "bundler"       , "~> 2.1.0"
-  spec.add_development_dependency "bacon"         , "~> 1.0"
-  spec.add_development_dependency "Bacon_Colored" , "~> 0.1"
-  spec.add_development_dependency "thin" , "> 1.6"
-  spec.add_development_dependency "rack-contrib" , "> 0.1"
+  spec.add_development_dependency "pry"           , "*"
+  spec.add_development_dependency "www_app"       , "*"
+  spec.add_development_dependency "bundler"       , "*"
+  spec.add_development_dependency "bacon"         , "*"
+  spec.add_development_dependency "Bacon_Colored" , "*"
+  spec.add_development_dependency "thin" , "*"
+  spec.add_development_dependency "rack-contrib" , "*"
 end
